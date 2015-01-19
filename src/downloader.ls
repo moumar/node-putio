@@ -12,9 +12,10 @@ mkdirp = Promise.promisify-all require \mkdirp
 module.exports = (get-request-args, fetch-putio-entry, putio-entries, opts = {}) -->
   opts.path ||= process.cwd!
   file-num = 0
-  download-putio-file = (bw, files-total; putio-file) -->
+  download-putio-file = (bw, files-total, putio-file) -->
+    file-path = path.join opts.path, putio-file.path
     mkdirp
-      .mkdirp-async path.join(opts.path, (path.dirname putio-file.path))
+      .mkdirp-async path.dirname file-path
       .catch ->
       .then ->
         log-event = {file-num, files-total, putio-file, bw.total}
@@ -22,7 +23,7 @@ module.exports = (get-request-args, fetch-putio-entry, putio-entries, opts = {})
           args = get-request-args \GET, "files/#{putio-file.id}/download"
 
           on-error = (err) ->
-            fs.unlink-async putio-file.path
+            fs.unlink-async file-path
               .then ->
                 rejected err
 
@@ -35,7 +36,7 @@ module.exports = (get-request-args, fetch-putio-entry, putio-entries, opts = {})
               if resp.code >= 400
                 on-error resp
             .on \error, on-error
-            .pipe fs.create-write-stream putio-file.path
+            .pipe fs.create-write-stream file-path
         .finally ->
           file-num += 1
 

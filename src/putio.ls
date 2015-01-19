@@ -1,5 +1,5 @@
 require! {
-  'prelude-ls': {map}
+  'prelude-ls': {map, partition}
   request
   bluebird: Promise
   './downloader'
@@ -53,7 +53,7 @@ module.exports = (access-token) ->
         
   fetch-putio-entry = (entry) ->
     #entry?.path ||= entry.name.replace \/, '-'
-    if entry == null or entry.is-directory
+    if not entry? or entry.is-directory
       #console.log \dir-entry, entry
       putio \GET, \files/list, parent_id: entry?.id
         .then ({files}) ->
